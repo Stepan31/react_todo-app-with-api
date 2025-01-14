@@ -1,27 +1,33 @@
 import classNames from 'classnames';
+import React, { useEffect } from 'react';
 
-type ErrorMessageProps = {
-  errorMessageText: string;
+type Props = {
+  error: string;
+  setError: (newError: string) => void;
 };
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({
-  errorMessageText,
-}) => {
-  const messageClass = classNames(
-    'notification',
-    'is-danger',
-    'is-light',
-    'has-text-weight-normal',
-    {
-      hidden: errorMessageText === '',
-    },
-  );
+export const Errors: React.FC<Props> = ({ error, setError }) => {
+  useEffect(() => {
+    const timer = setTimeout(() => setError(''), 3000);
+
+    return () => clearTimeout(timer);
+  }, [error, setError]);
 
   return (
-    <div data-cy="ErrorNotification" className={messageClass}>
-      <button data-cy="HideErrorButton" type="button" className="delete" />
-      {errorMessageText}
-      <br />
+    <div
+      data-cy="ErrorNotification"
+      className={classNames(
+        'notification is-danger is-light has-text-weight-normal',
+        { hidden: !error },
+      )}
+    >
+      <button
+        data-cy="HideErrorButton"
+        type="button"
+        className="delete"
+        onClick={() => setError('')}
+      />
+      {error}
     </div>
   );
 };

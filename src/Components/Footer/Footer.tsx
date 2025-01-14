@@ -1,44 +1,69 @@
+import React from 'react';
 import { Todo } from '../../Types/Todo';
-import { Filter } from '../../Types/Filter';
 import classNames from 'classnames';
+import { deleteTodo } from '../../api/todos';
+import { TodoFilter } from '../../Types/TodoFilter';
 
-type FooterProps = {
-  handleFilter: (filteringCriteria: Filter) => void;
+type Props = {
   todos: Todo[];
-  filter: string;
-  noCompletedTodos: boolean;
-  handleClearCompleted: () => void;
+  setTodos: (updater: ((todos: Todo[]) => Todo[]) | Todo[]) => void;
+  filter: TodoFilter;
+  setFilter: (filter: TodoFilter) => void;
+  setError: (value: string) => void;
 };
 
-export const Footer: React.FC<FooterProps> = ({
-  handleFilter,
+export const Footer: React.FC<Props> = ({
   todos,
+  setTodos,
   filter,
-  noCompletedTodos,
-  handleClearCompleted,
+  setFilter,
+  setError,
 }) => {
-  const getNumber = () => {
-    return todos.filter(todo => todo.completed !== true).length;
+  const activeLeft = todos.filter(todo => !todo.completed).length;
+  const clearCompleted = async () => {
+    const completedTodos = todos.filter(todo => todo.completed);
+    const updatedTodos: Todo[] = [...todos];
+    let hasErrors = false;
+
+    for (const todo of completedTodos) {
+      try {
+        await deleteTodo(todo.id);
+        const index = updatedTodos.findIndex(t => t.id === todo.id);
+
+        if (index !== -1) {
+          updatedTodos.splice(index, 1);
+        }
+      } catch {
+        hasErrors = true;
+        setError(`Unable to delete a todo`);
+      }
+    }
+
+    setTodos(updatedTodos);
+
+    if (hasErrors) {
+      setError('Unable to delete a todo');
+    }
   };
 
   return (
     <footer className="todoapp__footer" data-cy="Footer">
       <span className="todo-count" data-cy="TodosCounter">
-        {getNumber()} items left
+        {`${activeLeft} items left`}
       </span>
 
       <nav className="filter" data-cy="Filter">
-        {Object.values(Filter).map(filterValue => (
+        {Object.values(TodoFilter).map(filterOption => (
           <a
-            key={filterValue}
-            href={`#/${filterValue}`}
-            className={classNames('filter__link ', {
-              selected: filter === filterValue,
+            key={filterOption}
+            href={`#/${filterOption}`}
+            className={classNames('filter__link', {
+              selected: filter === filterOption,
             })}
-            data-cy={`FilterLink${filterValue.charAt(0).toUpperCase() + filterValue.slice(1)}`}
-            onClick={() => handleFilter(filterValue)}
+            data-cy={`FilterLink${filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}`}
+            onClick={() => setFilter(filterOption as TodoFilter)}
           >
-            {filterValue.charAt(0).toUpperCase() + filterValue.slice(1)}
+            {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
           </a>
         ))}
       </nav>
@@ -46,9 +71,9 @@ export const Footer: React.FC<FooterProps> = ({
       <button
         type="button"
         className="todoapp__clear-completed"
+        disabled={!todos.some(todo => todo.completed)}
         data-cy="ClearCompletedButton"
-        disabled={noCompletedTodos}
-        onClick={handleClearCompleted}
+        onClick={clearCompleted}
       >
         Clear completed
       </button>
