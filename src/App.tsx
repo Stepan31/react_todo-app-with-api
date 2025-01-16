@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import { getTodos, USER_ID } from './api/todos';
 import { Todo } from './Types/Todo';
-import { TodoInfo } from './Components/Todo/TodoInfo';
 import { Footer } from './Components/Footer/Footer';
 import { Errors } from './Components/ErrorMessage/ErrorMessage';
 import { Header } from './Components/Header/Header';
 import { TodoFilter } from './Types/TodoFilter';
+import TodoList from './Components/TodoList/TodoList';
+import { TodoInfo } from './Components/Todo/TodoInfo';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
@@ -49,16 +50,6 @@ export const App: React.FC = () => {
           setError={setError}
         />
 
-        {filteredTodos.map(todo => (
-          <TodoInfo
-            todo={todo}
-            toggleTodos={toggleTodos}
-            setTodos={setTodos}
-            setError={setError}
-            key={todo.id}
-          />
-        ))}
-
         {tempTodo && (
           <TodoInfo
             todo={tempTodo}
@@ -66,6 +57,16 @@ export const App: React.FC = () => {
             setTodos={setTodos}
             setError={setError}
             key={tempTodo.id}
+          />
+        )}
+
+        {/* Pass filteredTodos to TodoList */}
+        {filteredTodos.length > 0 && (
+          <TodoList
+            filteredTodos={filteredTodos}
+            toggleTodos={toggleTodos}
+            setTodos={setTodos}
+            setError={setError}
           />
         )}
 
